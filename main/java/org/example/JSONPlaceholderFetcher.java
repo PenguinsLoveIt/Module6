@@ -1,23 +1,39 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class JSONPlaceholderFetcher {
-    private final String URL_ADDRESS = "https://jsonplaceholder.typicode.com/users";
+    private final String URL_ADDRESS = "https://jsonplaceholder.typicode.com/posts";
     private final HttpClient client = HttpClient.newHttpClient();
+    private JSONMapper jsonMapper = new JSONMapper();
 
-    public String getSinglePost(int id) {
+    public Post getSinglePost(int id) {
         try {
             HttpRequest request = HttpRequest.newBuilder(new URI(URL_ADDRESS + "/" + id)).GET().build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return response.statusCode() == 201 || response.statusCode() == 200 ? response.body() : "Invalid ID";
+            return response.statusCode() == 201 || response.statusCode() == 200 ? jsonMapper.mapTo(response.body()) : null;
+        } catch (URISyntaxException | IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Post> getAllPostObjects() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder(new URI(URL_ADDRESS)).GET().build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return jsonMapper.mapToList(response.body());
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -26,10 +42,10 @@ public class JSONPlaceholderFetcher {
     public String getAllPosts() {
         try {
             HttpRequest request = HttpRequest.newBuilder(new URI(URL_ADDRESS)).GET().build();
-            CompletableFuture<HttpResponse<String>> response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return response.join().body();
-        } catch (URISyntaxException e) {
+            return response.body();
+        } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -46,5 +62,6 @@ public class JSONPlaceholderFetcher {
         }
 
     }
+
 
 }

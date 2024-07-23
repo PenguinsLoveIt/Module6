@@ -13,8 +13,7 @@ public class Post {
     private long id;
     private String title;
     private String body;
-    private final String URL_ADDRESS = "https://jsonplaceholder.typicode.com/users";
-    private final HttpClient client = HttpClient.newHttpClient();
+
 
     public Post(long userID, long id, String title, String body) {
         this.userID = userID;
